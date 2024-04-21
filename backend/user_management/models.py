@@ -44,7 +44,7 @@ class Users(AbstractBaseUser):
     user_profile = models.ImageField(upload_to='profile',blank=True,null=True) 
     
     objects = UserManager()
-    USERNAME_FIELD = 'username' 
+    USERNAME_FIELD = 'email' 
     
     def __str__(self) -> str:
         return self.email + 'haiss'

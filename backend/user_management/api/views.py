@@ -11,38 +11,43 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class Login(APIView):
     def post(self, request):
-        print(request.data,'data in login')
-        serializer = LoginSerializer(data = request.data) 
+        print(request.data,'data in loginview')
+        serializer = LoginSerializer(data = request.data)
+        print(serializer) 
         if serializer.is_valid():
-            username = serializer.validated_data['username']
+            print('hai')
+            email = serializer.validated_data['email'] 
             password = serializer.validated_data['password']
-            print(username,'haissssss')
-            user = authenticate(request=request,username=username,password=password)
+            print(email,password,'us,pass')
+            user = authenticate(request=request,email=email,password=password)
+            print(user,'got user')
             if user is not None:
-                print('inuser')
                 login(request,user)
-                print('otuser')
             if user is None:
                 return Response({'message':'invalid user', 'status' : 400})
             else:
-                print('else')
                 print(user,'usersrs')
-                refresh = RefreshToken.for_user(user)
-                print(refresh,'refresh') 
+                # refresh = RefreshToken.for_user(user)
+                token_serializer = MyTokenObtainPairSerializer(data = request.data)
+                print(token_serializer,'tokenserializer')
+                if token_serializer.is_valid():
+                    access = token_serializer.validated_data.get('access')
+                    refresh = token_serializer.validated_data.get('refresh')
                 token = {}
                 token['is_admin'] = False
-                auth_user = UserSerializer(user)
-                print(auth_user,'hh')
+                auth_user = UserSerializer(user) 
                 user_ = {
                     'auth_user':auth_user.data, 
                     'token':token,
                 }
+                print('succes')
                 return Response({
                     'user':user_,
                     'refresh': str(refresh),
-                    'access': str(refresh.access_token),
+                    'access': str(access),
+                    'status':200,
                 })
-        
+        print('end')
         return Response({
                     'status':400,
                     'message':"something went wrong here"
@@ -54,10 +59,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):  
         token = super().get_token(user)
 
-        token['email'] = user.email
-        token['password'] = user.password 
         token['username'] = user.username
-
+        token['email'] = user.email
+        token['number'] = user.number
+        token['is_admin'] = user.is_superuser
+        token['is_active'] = user.is_active
         return token
      
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -79,6 +85,5 @@ class UserSignup(APIView):
         if serializer.is_valid():
             serializer.save()
             
-            # Users.objects.create(username=request.name,email = request.email,number=request.number)
             return Response(serializer.data, status = 201)
         return Response(serializer.errors, status = 400)
