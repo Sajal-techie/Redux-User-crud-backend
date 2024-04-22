@@ -47,4 +47,4 @@ class Users(AbstractBaseUser):
     USERNAME_FIELD = 'email' 
     
     def __str__(self) -> str:
-        return self.email + 'haiss'
+        return self.email + '  str of user  haiss'
