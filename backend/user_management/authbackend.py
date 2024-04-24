@@ -13,7 +13,7 @@ class UserBackend(ModelBackend):
             print('exepridfsadf')
             return None
         if user.check_password(password.strip()):
-            print('hhhh')
+            print(user.username,'hhhh')
             return user
         print('end')
         return None

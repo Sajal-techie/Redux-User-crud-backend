@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin
 
 
 class UserManager(BaseUserManager):
@@ -34,10 +34,10 @@ class UserManager(BaseUserManager):
     def get_by_natural_key(self, username):
         return self.get(username=username)
     
-class Users(AbstractBaseUser):
+class Users(AbstractBaseUser,PermissionsMixin):
     username = models.CharField(unique=True,max_length=100,null=True)
     email = models.EmailField(unique=True,max_length=100)
-    number = models.IntegerField(null=True,blank=True)
+    number = models.CharField(null=True,blank=True,max_length=15)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -45,6 +45,12 @@ class Users(AbstractBaseUser):
     
     objects = UserManager()
     USERNAME_FIELD = 'email' 
+    
+    def has_perm(self, perm, obj=None):
+        return self.is_staff
+
+    def has_module_perms(self, app_label):
+        return self.is_staff
     
     def __str__(self) -> str:
         return self.email + '  str of user  haiss'
