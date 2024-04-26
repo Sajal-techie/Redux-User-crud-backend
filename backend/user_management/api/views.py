@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from .serializers import UserSerializer,LoginSerializer
 from django.contrib.auth import authenticate,login 
@@ -71,7 +72,7 @@ class Login(APIView):
             print(e)
             return Response({
                             'status':400,
-                            'message':"You are blocked "
+                            'message':"Can't Login You are Blocked "
                         })
             
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -133,7 +134,21 @@ class UserDetails(RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         try:
             print(serializer,'in update')
-            serializer.save() 
+            instance =  serializer.save() 
+            data = self.get_object()
+            refresh = RefreshToken.for_user(instance)
+            access = refresh.access_token
+            token_serializer = MyTokenObtainPairSerializer(
+                data={'refresh': str(refresh), 'access': str(access), 'username': instance.username}
+            )
+            print(token_serializer)
+            if token_serializer.is_valid():
+                print('Token updated successfully')
+                # If serializer is valid, return the new token data in the response
+                return Response(token_serializer.validated_data, status=200)
+            else:
+                # If serializer is not valid, return an error response
+                return Response({'error': 'Unable to update token'}, status=400)
         except Exception as e:
             print(e)
         
